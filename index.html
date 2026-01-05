@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candy Crush Clone</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>🍬 Candy Crush Clone</h1>
+            <div class="level-info">
+                <span id="levelDisplay">Level 1</span>
+                <span class="target-score">Target: <span id="targetScoreDisplay">1000</span></span>
+            </div>
+        </header>
+
+        <main class="game-main">
+            <div class="board-container">
+                <div id="gameBoard" class="game-board"></div>
+            </div>
+
+            <aside class="side-panel">
+                <div class="stat-box">
+                    <div class="stat-label">Score</div>
+                    <div id="scoreDisplay" class="stat-value">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Moves</div>
+                    <div id="movesDisplay" class="stat-value">30</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">High Score</div>
+                    <div id="highScoreDisplay" class="stat-value">0</div>
+                </div>
+
+                <div class="buttons">
+                    <button id="restartBtn" class="btn btn-primary">Restart Level</button>
+                    <button id="newGameBtn" class="btn btn-secondary">New Game</button>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <div id="resultsModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modalTitle">Game Over</h2>
+            <p id="modalMessage">Your final score: 0</p>
+            <div class="modal-buttons">
+                <button id="retryBtn" class="btn btn-primary">Try Again</button>
+                <button id="nextLevelBtn" class="btn btn-primary hidden">Next Level</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+</body>
+</html>
