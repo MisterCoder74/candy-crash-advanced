@@ -22,8 +22,12 @@ class CandyCrushGame {
         this.highScore = parseInt(localStorage.getItem('candyCrushHighScore')) || 0;
         this.targetScore = 1000;
         this.targetScores = [1000, 2000, 3000, 5000, 7500];
+        this.timeRemaining = 240;
+        this.timerInterval = null;
+        this.timerDurations = [240, 240, 180, 180, 120];
         
         this.init();
+        this.setupPageUnload();
     }
 
     init() {
@@ -31,6 +35,7 @@ class CandyCrushGame {
         this.createBoard();
         this.renderBoard();
         this.updateUI();
+        this.startTimer();
     }
 
     loadGameState() {
@@ -41,11 +46,14 @@ class CandyCrushGame {
                 this.level = state.level || 1;
                 this.score = state.score || 0;
                 this.moves = state.moves || 30;
+                this.timeRemaining = state.timeRemaining || this.timerDurations[Math.min(this.level - 1, this.timerDurations.length - 1)];
                 this.targetScore = this.targetScores[Math.min(this.level - 1, this.targetScores.length - 1)];
             } catch (e) {
                 console.error('Error loading game state:', e);
                 this.resetLevel();
             }
+        } else {
+            this.timeRemaining = this.timerDurations[Math.min(this.level - 1, this.timerDurations.length - 1)];
         }
     }
 
@@ -53,7 +61,8 @@ class CandyCrushGame {
         const state = {
             level: this.level,
             score: this.score,
-            moves: this.moves
+            moves: this.moves,
+            timeRemaining: this.timeRemaining
         };
         localStorage.setItem('candyCrushGameState', JSON.stringify(state));
         
@@ -360,13 +369,15 @@ class CandyCrushGame {
 
     checkGameEnd() {
         if (this.score >= this.targetScore) {
+            this.stopTimer();
             this.showResults(true);
         } else if (this.moves <= 0) {
+            this.stopTimer();
             this.showResults(false);
         }
     }
 
-    showResults(won) {
+    showResults(won, timeUp = false) {
         const modal = document.getElementById('resultsModal');
         const title = document.getElementById('modalTitle');
         const message = document.getElementById('modalMessage');
@@ -378,7 +389,11 @@ class CandyCrushGame {
             message.textContent = `You scored ${this.score} points! Target was ${this.targetScore}.`;
             nextLevelBtn.classList.remove('hidden');
         } else {
-            title.textContent = '😢 Game Over';
+            if (timeUp) {
+                title.textContent = '⏰ Time\'s up!';
+            } else {
+                title.textContent = '😢 Game Over';
+            }
             title.style.color = '#f44336';
             message.textContent = `You scored ${this.score} points. Target was ${this.targetScore}.`;
             nextLevelBtn.classList.add('hidden');
@@ -388,28 +403,36 @@ class CandyCrushGame {
     }
 
     resetLevel() {
+        this.stopTimer();
         this.score = 0;
         this.moves = 30;
+        this.timeRemaining = this.timerDurations[Math.min(this.level - 1, this.timerDurations.length - 1)];
         this.createBoard();
         this.renderBoard();
         this.saveGameState();
         this.updateUI();
+        this.startTimer();
     }
 
     newGame() {
+        this.stopTimer();
         this.level = 1;
         this.targetScore = this.targetScores[0];
+        this.timeRemaining = this.timerDurations[0];
         this.resetLevel();
     }
 
     nextLevel() {
+        this.stopTimer();
         this.level++;
         this.targetScore = this.targetScores[Math.min(this.level - 1, this.targetScores.length - 1)];
+        this.timeRemaining = this.timerDurations[Math.min(this.level - 1, this.timerDurations.length - 1)];
         this.moves = 30;
         this.createBoard();
         this.renderBoard();
         this.saveGameState();
         this.updateUI();
+        this.startTimer();
     }
 
     updateUI() {
@@ -418,6 +441,55 @@ class CandyCrushGame {
         document.getElementById('highScoreDisplay').textContent = this.highScore;
         document.getElementById('levelDisplay').textContent = `Level ${this.level}`;
         document.getElementById('targetScoreDisplay').textContent = this.targetScore;
+        this.updateTimerDisplay();
+    }
+
+    startTimer() {
+        this.stopTimer();
+        this.timerInterval = setInterval(() => {
+            this.timeRemaining--;
+            this.updateTimerDisplay();
+            this.saveGameState();
+
+            if (this.timeRemaining <= 0) {
+                this.stopTimer();
+                this.showResults(false, true);
+            }
+        }, 1000);
+    }
+
+    stopTimer() {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+    }
+
+    updateTimerDisplay() {
+        const minutes = Math.floor(this.timeRemaining / 60);
+        const seconds = this.timeRemaining % 60;
+        const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerBox = document.querySelector('.timer-box');
+        
+        timerDisplay.textContent = timeString;
+        
+        if (this.timeRemaining <= 30) {
+            timerBox.classList.add('warning');
+        } else {
+            timerBox.classList.remove('warning');
+        }
+    }
+
+    setupPageUnload() {
+        window.addEventListener('beforeunload', () => {
+            this.stopTimer();
+        });
+
+        window.addEventListener('unload', () => {
+            this.stopTimer();
+        });
     }
 
     delay(ms) {

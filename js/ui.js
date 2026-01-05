@@ -35,6 +35,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Pause timer when modal is shown
+    const modal = document.getElementById('resultsModal');
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'class') {
+                if (!modal.classList.contains('hidden') && window.game) {
+                    // Modal is shown, timer is already stopped by game logic
+                }
+            }
+        });
+    });
+    observer.observe(modal, { attributes: true });
+
     // Close modal when clicking outside
     document.getElementById('resultsModal').addEventListener('click', (e) => {
         if (e.target.id === 'resultsModal') {
